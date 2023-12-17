@@ -1,0 +1,44 @@
+name: Manual Trigger Workflow
+
+# configure manual trigger
+on:
+  workflow_dispatch:
+   inputs:
+      imagetag:
+        description: "image tag"
+      branch:
+        description: "git branch"
+      app:
+        description: "app name"
+
+
+
+jobs:
+  printInputs:
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo "Tags: ${{ github.event.inputs.branch }}" 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - name: Modify Image Tag
+        run: |
+           pwd
+           filename="${{ github.event.inputs.app }}.yaml"
+           if [ ! -f $filename ]
+           then
+               touch $filename
+           fi
+           newtag=${{ github.event.inputs.imagetag }}
+           echo $newtag
+           echo -n "version:$newtag" > $filename
+           git config --global user.name "Smarsh"
+           git config --global user.email "ci@smarsh.com"
+           git add -A
+           git commit -m "commit message"
+           git push
